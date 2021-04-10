@@ -7,28 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 )
-
-type fileAttrs struct {
-	Mode                 uint32
-	LastModificationTime int64
-	CreationTime         int64
-	LastAccessTime       int64
-}
-
-func fromArray(row []string) *fileAttrs {
-	mode, _ := strconv.ParseUint(row[1], 10, 32)
-	mtime, _ := strconv.ParseInt(row[2], 10, 64)
-	ctime, _ := strconv.ParseInt(row[3], 10, 64)
-	atime, _ := strconv.ParseInt(row[4], 10, 64)
-	return &fileAttrs{
-		Mode:                 uint32(mode),
-		LastModificationTime: mtime,
-		CreationTime:         ctime,
-		LastAccessTime:       atime,
-	}
-}
 
 func dumpAttrs(targetPath string, listPath string) error {
 	list, err := os.Create(listPath)
@@ -67,7 +46,7 @@ func restoreAttrs(targetPath string, listPath string, restore bool) error {
 
 	files := map[string]*fileAttrs{}
 	for _, row := range rows {
-		files[filepath.ToSlash(row[0])] = fromArray(row)
+		files[row[0]] = fromArray(row)
 	}
 
 	err = filepath.Walk(targetPath, func(path string, info os.FileInfo, err error) error {
@@ -98,38 +77,35 @@ func restoreAttrs(targetPath string, listPath string, restore bool) error {
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s -l ATTR_LIST.tsv -m save|compare|restore TARGET_DIR\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage: %s -m save|compare|restore -l ATTR_LIST.tsv TARGET_DIR\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 	listPath := flag.String("l", "", "attr list")
 	mode := flag.String("m", "", "save|compare|restore")
 	flag.Parse()
+
 	targetPath := flag.Arg(0)
-	if *mode == "" || *listPath == "" || targetPath == "" {
+	if *listPath == "" || targetPath == "" {
 		flag.Usage()
-		return
+		os.Exit(1)
 	}
 
+	var err error
 	switch *mode {
 	case "save":
-		err := dumpAttrs(targetPath, *listPath)
-		if err != nil {
-			log.Fatal(err)
-		}
+		err = dumpAttrs(targetPath, *listPath)
 		break
 	case "compare":
-		err := restoreAttrs(targetPath, *listPath, false)
-		if err != nil {
-			log.Fatal(err)
-		}
+		err = restoreAttrs(targetPath, *listPath, false)
 		break
 	case "restore":
-		err := restoreAttrs(targetPath, *listPath, true)
-		if err != nil {
-			log.Fatal(err)
-		}
+		err = restoreAttrs(targetPath, *listPath, true)
 		break
 	default:
 		flag.Usage()
+		os.Exit(1)
+	}
+	if err != nil {
+		log.Fatal(err)
 	}
 }
