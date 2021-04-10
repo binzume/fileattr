@@ -9,7 +9,7 @@
 T.B.D.
 
 ```bash
-go install github.com/binzume/fileattr
+go install github.com/binzume/fileattr@latest
 
 fileattr -m save -l hoge.tsv ./path_to_target
 fileattr -m compare -l hoge.tsv ./path_to_target
