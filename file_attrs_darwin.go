@@ -13,6 +13,7 @@ func getFileAttrs(fi os.FileInfo) *fileAttrs {
 		LastModificationTime: fi.ModTime().UnixNano(),
 		CreationTime:         syscall.TimespecToNsec(stat.Ctimespec),
 		LastAccessTime:       syscall.TimespecToNsec(stat.Atimespec),
+		Size:                 fi.Size(),
 	}
 }
 

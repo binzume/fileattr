@@ -5,13 +5,14 @@ import (
 	"syscall"
 )
 
-func getFileAttrs(info os.FileInfo) *fileAttrs {
-	stat := info.Sys().(*syscall.Win32FileAttributeData)
+func getFileAttrs(fi os.FileInfo) *fileAttrs {
+	stat := fi.Sys().(*syscall.Win32FileAttributeData)
 	return &fileAttrs{
-		Mode:                 uint32(info.Mode() & ^os.ModeDir),
-		LastModificationTime: info.ModTime().UnixNano(),
+		Mode:                 uint32(fi.Mode() & ^os.ModeDir),
+		LastModificationTime: fi.ModTime().UnixNano(),
 		CreationTime:         stat.CreationTime.Nanoseconds(),
 		LastAccessTime:       stat.LastAccessTime.Nanoseconds(),
+		Size:                 fi.Size(),
 	}
 }
 
