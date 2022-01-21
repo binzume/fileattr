@@ -34,6 +34,9 @@ func setFileAttrs(path string, info os.FileInfo, attrs *fileAttrs) error {
 	return syscall.SetFileTime(h, &c, &a, &w)
 }
 
-func isModified(attrs1 *fileAttrs, attrs2 *fileAttrs) bool {
-	return *attrs1 != *attrs2
+func isModified(current *fileAttrs, saved *fileAttrs) bool {
+	return current.Mode > saved.Mode ||
+		current.LastModificationTime > saved.LastModificationTime ||
+		current.CreationTime > saved.CreationTime ||
+		current.LastAccessTime > saved.LastAccessTime
 }
